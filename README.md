@@ -43,9 +43,8 @@ PulseWrap is a Kotlin Multiplatform application that generates Wrapped-style KPI
 1. Ensure you have JDK 17 installed
 2. Open the project in IntelliJ IDEA or Android Studio
 3. Run the `desktopApp` configuration, or execute:
-   ```bash
-   ./gradlew :desktopApp:run
-   ```
+   - Windows: `.\gradlew.bat :desktopApp:run`
+   - macOS/Linux: `./gradlew :desktopApp:run`
 
 ### Android
 
@@ -53,9 +52,16 @@ PulseWrap is a Kotlin Multiplatform application that generates Wrapped-style KPI
 2. Ensure you have an Android emulator running or a device connected
 3. Select the `androidApp` run configuration
 4. Click Run, or execute:
-   ```bash
-   ./gradlew :androidApp:installDebug
-   ```
+   - Windows: `.\gradlew.bat :androidApp:assembleDebug`
+   - macOS/Linux: `./gradlew :androidApp:assembleDebug`
+
+### Web (Wasm)
+
+1. Ensure you have JDK 17 installed
+2. Run the development server:
+   - Windows: `.\gradlew.bat :webApp:wasmJsBrowserDevelopmentRun`
+   - macOS/Linux: `./gradlew :webApp:wasmJsBrowserDevelopmentRun`
+3. Open the URL shown in the terminal (typically http://localhost:8080) in a modern browser (Chrome/Chromium recommended)
 
 ## Folder Structure
 
