@@ -1,34 +1,48 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
-    alias(libs.plugins.android.library)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
 }
 
-android {
-    namespace = "com.pulsewrap.shared"
-    compileSdk = 35
+val hasAndroidSdk = try {
+    project.findProperty("android.sdk.dir") != null || 
+    System.getenv("ANDROID_HOME") != null ||
+    file("${System.getProperty("user.home")}/.android/sdk").exists()
+} catch (e: Exception) {
+    false
+}
+
+// Conditionally apply Android plugin only when SDK is available
+if (hasAndroidSdk) {
+    apply(plugin = libs.plugins.android.library.get().pluginId)
     
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].res.srcDirs("src/androidMain/res")
-    sourceSets["main"].resources.srcDirs("src/commonMain/resources")
-    
-    defaultConfig {
-        minSdk = 24
-    }
-    
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+    extensions.configure<com.android.build.gradle.LibraryExtension>("android") {
+        namespace = "com.pulsewrap.shared"
+        compileSdk = 35
+        
+        sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+        sourceSets["main"].res.srcDirs("src/androidMain/res")
+        sourceSets["main"].resources.srcDirs("src/commonMain/resources")
+        
+        defaultConfig {
+            minSdk = 24
+        }
+        
+        compileOptions {
+            sourceCompatibility = JavaVersion.VERSION_17
+            targetCompatibility = JavaVersion.VERSION_17
+        }
     }
 }
 
 kotlin {
-    androidTarget {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "17"
+    if (hasAndroidSdk) {
+        androidTarget {
+            compilations.all {
+                kotlinOptions {
+                    jvmTarget = "17"
+                }
             }
         }
     }
@@ -41,6 +55,7 @@ kotlin {
         }
     }
     
+    @OptIn(org.jetbrains.kotlin.gradle.ExperimentalWasmDsl::class)
     wasmJs {
         browser {
             commonWebpackConfig {
@@ -66,7 +81,9 @@ kotlin {
             }
         }
         
-        val androidMain by getting
+        if (hasAndroidSdk) {
+            val androidMain by getting
+        }
         
         val desktopMain by getting
         
@@ -77,6 +94,22 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
+    }
+}
+
+// Make Android test tasks optional when SDK is not available
+if (!hasAndroidSdk) {
+    tasks.matching { it.name.contains("Android", ignoreCase = true) || it.name.contains("testDebugUnitTest") || it.name.contains("DebugUnitTest") }.configureEach {
+        enabled = false
+    }
+    
+    // Customize check task to exclude Android tests when SDK is missing
+    tasks.named("check").configure {
+        setDependsOn(dependsOn.filterNot { 
+            it.toString().contains("Android", ignoreCase = true) || 
+            it.toString().contains("testDebugUnitTest") ||
+            it.toString().contains("DebugUnitTest")
+        })
     }
 }
 

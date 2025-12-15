@@ -20,7 +20,7 @@ tasks.register("quickCheck") {
     group = "verification"
     description = "Quick build checks for shared, desktop, and web modules (no Android SDK required)"
     dependsOn(
-        ":shared:desktopTest",
+        ":shared:check",
         ":desktopApp:build",
         ":webApp:build"
     )

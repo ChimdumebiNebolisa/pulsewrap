@@ -35,12 +35,7 @@ android {
 dependencies {
     implementation(project(":shared"))
     
-    implementation(libs.compose.ui)
-    implementation(libs.compose.ui.tooling.preview)
-    implementation(libs.compose.material3)
-    implementation(libs.compose.foundation)
-    
-    implementation("androidx.activity:activity-compose:1.9.2")
-    implementation("androidx.core:core-ktx:1.15.0")
+    implementation(libs.activity.compose)
+    implementation(libs.core.ktx)
 }
 
