@@ -17,8 +17,7 @@ kotlin {
     sourceSets {
         val wasmJsMain by getting {
             dependencies {
-                // M1: Temporarily comment out shared dependency - will be added in M2
-                // implementation(project(":shared"))
+                implementation(project(":shared"))
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.material3)

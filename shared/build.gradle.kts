@@ -21,6 +21,15 @@ kotlin {
         }
     }
     
+    wasmJs {
+        browser {
+            commonWebpackConfig {
+                outputFileName = "shared.js"
+            }
+        }
+        binaries.executable()
+    }
+    
     sourceSets {
         val commonMain by getting {
             dependencies {
@@ -40,6 +49,8 @@ kotlin {
         val androidMain by getting
         
         val desktopMain by getting
+        
+        val wasmJsMain by getting
         
         val commonTest by getting {
             dependencies {
