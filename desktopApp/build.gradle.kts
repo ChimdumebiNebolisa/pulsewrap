@@ -1,7 +1,7 @@
 plugins {
     kotlin("jvm")
+    alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
-    id("org.jetbrains.compose") version "1.6.10"
 }
 
 kotlin {
@@ -11,6 +11,7 @@ kotlin {
 dependencies {
     implementation(project(":shared"))
     implementation(compose.desktop.currentOs)
+    implementation(libs.kotlinx.datetime)
 }
 
 compose.desktop {

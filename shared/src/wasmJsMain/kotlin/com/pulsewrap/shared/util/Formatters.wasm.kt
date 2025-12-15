@@ -5,7 +5,10 @@ import kotlinx.datetime.LocalDate
 actual object Formatters {
     actual fun formatCurrency(amount: Double): String {
         // Simple currency formatting for Wasm
-        val formatted = "%.2f".format(amount)
+        val rounded = (amount * 100).toInt()
+        val dollars = rounded / 100
+        val cents = rounded % 100
+        val formatted = "$dollars.${cents.toString().padStart(2, '0')}"
         return "$${formatted.replace(Regex("(\\d)(?=(\\d{3})+(?!\\d))"), "$1,")}"
     }
     
