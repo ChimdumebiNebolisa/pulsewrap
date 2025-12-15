@@ -9,12 +9,10 @@ buildscript {
 plugins {
     alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.android.library) apply false
     alias(libs.plugins.compose.compiler) apply false
     alias(libs.plugins.kotlin.serialization) apply false
-}
-
-tasks.register("clean", Delete::class) {
-    delete(rootProject.buildDir)
+    id("org.jetbrains.compose") version "1.6.10" apply false
 }
 
 tasks.register("quickCheck") {

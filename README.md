@@ -33,6 +33,7 @@ PulseWrap is a Kotlin Multiplatform application that generates Wrapped-style KPI
 ## Requirements
 
 - JDK 17 or higher
+- Gradle Wrapper (included in repository - downloads Gradle automatically)
 - Android Studio (for Android development)
 - IntelliJ IDEA or Android Studio (for Desktop development)
 
