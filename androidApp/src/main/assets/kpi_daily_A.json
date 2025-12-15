@@ -1,0 +1,27 @@
+[
+  {
+    "date": "2025-11-01",
+    "revenue": 1200,
+    "expenses": 700,
+    "activeUsers": 95,
+    "newUsers": 10,
+    "cashBalance": 8000
+  },
+  {
+    "date": "2025-11-02",
+    "revenue": 900,
+    "expenses": 650,
+    "activeUsers": 102,
+    "newUsers": 14,
+    "cashBalance": 8250
+  },
+  {
+    "date": "2025-11-03",
+    "revenue": 1600,
+    "expenses": 720,
+    "activeUsers": 120,
+    "newUsers": 18,
+    "cashBalance": 9130
+  }
+]
+

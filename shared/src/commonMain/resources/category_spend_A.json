@@ -1,0 +1,7 @@
+[
+  { "date": "2025-11-01", "category": "Ads",   "amount": 120 },
+  { "date": "2025-11-01", "category": "Cloud", "amount": 90  },
+  { "date": "2025-11-02", "category": "Ads",   "amount": 140 },
+  { "date": "2025-11-03", "category": "Tools", "amount": 60  }
+]
+

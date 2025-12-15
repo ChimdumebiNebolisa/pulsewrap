@@ -1,0 +1,35 @@
+[
+  {
+    "date": "2025-11-01",
+    "revenue": 1500,
+    "expenses": 900,
+    "activeUsers": 140,
+    "newUsers": 22,
+    "cashBalance": 12000
+  },
+  {
+    "date": "2025-11-02",
+    "revenue": 650,
+    "expenses": 980,
+    "activeUsers": 110,
+    "newUsers": 9,
+    "cashBalance": 11670
+  },
+  {
+    "date": "2025-11-03",
+    "revenue": 2100,
+    "expenses": 1050,
+    "activeUsers": 170,
+    "newUsers": 35,
+    "cashBalance": 12720
+  },
+  {
+    "date": "2025-11-04",
+    "revenue": 1900,
+    "expenses": 870,
+    "activeUsers": 160,
+    "newUsers": 18,
+    "cashBalance": 13750
+  }
+]
+
