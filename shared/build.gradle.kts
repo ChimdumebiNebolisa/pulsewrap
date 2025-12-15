@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.library) apply false
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
@@ -17,7 +18,7 @@ val hasAndroidSdk = try {
 if (hasAndroidSdk) {
     apply(plugin = libs.plugins.android.library.get().pluginId)
     
-    extensions.configure<com.android.build.gradle.LibraryExtension>("android") {
+    configure<com.android.build.gradle.LibraryExtension> {
         namespace = "com.pulsewrap.shared"
         compileSdk = 35
         
