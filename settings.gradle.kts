@@ -18,4 +18,5 @@ rootProject.name = "PulseWrap"
 include(":shared")
 include(":androidApp")
 include(":desktopApp")
+include(":webApp")
 
