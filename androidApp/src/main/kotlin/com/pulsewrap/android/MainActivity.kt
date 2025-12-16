@@ -13,6 +13,7 @@ import com.pulsewrap.shared.data.DatasetLoader
 import com.pulsewrap.shared.data.DatasetRepository
 import com.pulsewrap.shared.engine.InsightEngine
 import com.pulsewrap.shared.engine.MarkdownGenerator
+import com.pulsewrap.shared.model.RecapData
 import com.pulsewrap.shared.ui.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,7 +32,7 @@ class MainActivity : ComponentActivity() {
         DatasetLoader.initialize(applicationContext)
         
         setContent {
-            MaterialTheme {
+            com.pulsewrap.shared.ui.PulseWrapTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -44,17 +45,15 @@ class MainActivity : ComponentActivity() {
     
     @Composable
     private fun AppContent() {
-        var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
-        var currentInsights by remember { mutableStateOf<List<com.pulsewrap.shared.model.InsightCard>>(emptyList()) }
-        var currentMarkdown by remember { mutableStateOf("") }
-        var currentDatasetVariant by remember { mutableStateOf("A") }
+        var currentScreen by remember { mutableStateOf<Screen>(Screen.Landing) }
+        var inputMode by remember { mutableStateOf(InputMode.Demo) }
+        var recapData by remember { mutableStateOf<RecapData?>(null) }
         var isLoading by remember { mutableStateOf(false) }
         var errorMessage by remember { mutableStateOf<String?>(null) }
         
         fun generateRecap(variant: String) {
             isLoading = true
             errorMessage = null
-            currentDatasetVariant = variant
             
             CoroutineScope(Dispatchers.Default).launch {
                 try {
@@ -68,21 +67,25 @@ class MainActivity : ComponentActivity() {
                             )
                             val markdown = MarkdownGenerator.toMarkdown(insights, meta)
                             
-                            currentInsights = insights
-                            currentMarkdown = markdown
+                            recapData = RecapData(
+                                datasetName = "Demo $variant",
+                                insights = insights,
+                                markdown = markdown,
+                                generatedAt = Clock.System.now()
+                            )
                             isLoading = false
-                            currentScreen = Screen.Recap(variant)
+                            currentScreen = Screen.Recap
                         },
                         onFailure = { error ->
                             errorMessage = error.message ?: "Failed to load dataset"
                             isLoading = false
-                            currentScreen = Screen.Recap(variant)
+                            currentScreen = Screen.Recap
                         }
                     )
                 } catch (e: Exception) {
                     errorMessage = e.message ?: "An error occurred"
                     isLoading = false
-                    currentScreen = Screen.Recap(variant)
+                    currentScreen = Screen.Recap
                 }
             }
         }
@@ -98,11 +101,34 @@ class MainActivity : ComponentActivity() {
         }
         
         when (val screen = currentScreen) {
-            is Screen.Home -> {
-                HomeScreen(
-                    onGenerateRecap = { variant ->
-                        generateRecap(variant)
+            is Screen.Landing -> {
+                LandingScreen(
+                    onTryDemo = {
+                        inputMode = InputMode.Demo
+                        currentScreen = Screen.Input
+                    },
+                    onUploadData = {
+                        inputMode = InputMode.Upload
+                        currentScreen = Screen.Input
                     }
+                )
+            }
+            is Screen.Input -> {
+                InputScreen(
+                    inputMode = inputMode,
+                    onGenerateDemo = { variant ->
+                        generateRecap(variant)
+                    },
+                    onGenerateUpload = { _, _ ->
+                        // Android doesn't support upload yet, show error
+                        errorMessage = "File upload not yet supported on Android"
+                        currentScreen = Screen.Recap
+                    },
+                    onBack = {
+                        currentScreen = Screen.Landing
+                    },
+                    onUploadKpiFile = null,
+                    onUploadSpendFile = null
                 )
             }
             is Screen.Recap -> {
@@ -116,34 +142,41 @@ class MainActivity : ComponentActivity() {
                 } else if (errorMessage != null) {
                     ErrorScreen(
                         message = errorMessage!!,
-                        onBack = { currentScreen = Screen.Home }
+                        onBack = { currentScreen = Screen.Input }
                     )
                 } else {
                     RecapScreen(
-                        insights = currentInsights,
-                        markdown = currentMarkdown,
-                        onBack = { currentScreen = Screen.Home },
+                        recapData = recapData,
+                        onBack = { currentScreen = Screen.Input },
                         onViewMarkdown = {
-                            currentScreen = Screen.MarkdownPreview(
-                                markdown = currentMarkdown,
-                                datasetVariant = currentDatasetVariant
-                            )
+                            currentScreen = Screen.Report
                         }
                     )
                 }
             }
-            is Screen.MarkdownPreview -> {
+            is Screen.Report -> {
+                val markdown = recapData?.markdown ?: ""
                 MarkdownPreviewScreen(
-                    markdown = screen.markdown,
+                    markdown = markdown,
+                    datasetName = recapData?.datasetName,
                     onBack = {
-                        currentScreen = Screen.Recap(screen.datasetVariant)
+                        currentScreen = Screen.Recap
                     },
                     onShare = {
-                        shareMarkdown(screen.markdown)
+                        shareMarkdown(markdown)
                     },
                     onExport = {},
                     isAndroid = true
                 )
+            }
+            // Keep deprecated screens for backward compatibility
+            is Screen.Home -> {
+                // Fallback to Landing
+                currentScreen = Screen.Landing
+            }
+            is Screen.MarkdownPreview -> {
+                // Redirect to Report
+                currentScreen = Screen.Report
             }
         }
     }
