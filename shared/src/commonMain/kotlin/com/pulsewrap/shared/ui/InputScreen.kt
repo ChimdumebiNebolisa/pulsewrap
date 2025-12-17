@@ -8,6 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.pulsewrap.shared.data.DatasetLoader
 import com.pulsewrap.shared.data.DatasetRepository
 import kotlinx.coroutines.launch
 
@@ -24,6 +25,7 @@ fun InputScreen(
     onBack: () -> Unit,
     onUploadKpiFile: (suspend () -> String)? = null,
     onUploadSpendFile: (suspend () -> String)? = null,
+    onSwitchToDemo: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var selectedVariant by remember { mutableStateOf("A") }
@@ -33,8 +35,22 @@ fun InputScreen(
     var spendParseStatus by remember { mutableStateOf<String?>(null) }
     var kpiError by remember { mutableStateOf<String?>(null) }
     var spendError by remember { mutableStateOf<String?>(null) }
+    var kpiRecordCount by remember { mutableStateOf<Int?>(null) }
+    var spendRecordCount by remember { mutableStateOf<Int?>(null) }
+    var showDemoPreview by remember { mutableStateOf(false) }
+    var showKpiPreview by remember { mutableStateOf(false) }
+    var showSpendPreview by remember { mutableStateOf(false) }
+    var shouldAutoOpenPreview by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val repository = remember { DatasetRepository() }
+    
+    // Auto-open demo preview when switching from Upload to Demo mode
+    LaunchedEffect(inputMode, shouldAutoOpenPreview) {
+        if (inputMode == InputMode.Demo && shouldAutoOpenPreview) {
+            showDemoPreview = true
+            shouldAutoOpenPreview = false
+        }
+    }
     
     ScreenContainer(
         title = if (inputMode == InputMode.Demo) "Try Demo" else "Upload Data",
@@ -78,6 +94,13 @@ fun InputScreen(
                                 modifier = Modifier.weight(1f)
                             )
                         }
+                        
+                        // Preview demo inputs button
+                        TextButton(
+                            onClick = { showDemoPreview = true }
+                        ) {
+                            Text("Preview demo inputs")
+                        }
                     }
                 }
                 InputMode.Upload -> {
@@ -95,9 +118,11 @@ fun InputScreen(
                         if (onUploadKpiFile != null && onUploadSpendFile != null) {
                             // KPI File Upload
                             UploadCard(
-                                title = "KPI Daily JSON",
+                                title = "KPI Daily",
+                                subtitle = "One record per day (date, revenue, expenses, activeUsers, newUsers).",
                                 parseStatus = kpiParseStatus,
                                 error = kpiError,
+                                hasPreview = kpiJson != null && kpiError == null,
                                 onUpload = {
                                     scope.launch {
                                         try {
@@ -107,17 +132,25 @@ fun InputScreen(
                                             val parseResult = repository.validateKpiJson(content)
                                             parseResult.fold(
                                                 onSuccess = { kpiDaily ->
-                                                    kpiParseStatus = "Loaded ${kpiDaily.size} KPI rows"
+                                                    kpiRecordCount = kpiDaily.size
+                                                    kpiParseStatus = "Loaded ${kpiDaily.size} rows"
                                                 },
                                                 onFailure = { error ->
                                                     kpiError = "Invalid JSON: ${error.message}"
                                                     kpiParseStatus = null
+                                                    kpiRecordCount = null
                                                 }
                                             )
                                         } catch (e: Exception) {
                                             kpiError = "Failed to read file: ${e.message}"
                                             kpiParseStatus = null
+                                            kpiRecordCount = null
                                         }
+                                    }
+                                },
+                                onPreview = {
+                                    if (kpiJson != null) {
+                                        showKpiPreview = true
                                     }
                                 }
                             )
@@ -126,9 +159,11 @@ fun InputScreen(
                             
                             // Category Spend File Upload
                             UploadCard(
-                                title = "Category Spend JSON",
+                                title = "Category Spend",
+                                subtitle = "Multiple records per day (date, category, amount).",
                                 parseStatus = spendParseStatus,
                                 error = spendError,
+                                hasPreview = spendJson != null && spendError == null,
                                 onUpload = {
                                     scope.launch {
                                         try {
@@ -138,28 +173,41 @@ fun InputScreen(
                                             val parseResult = repository.validateSpendJson(content)
                                             parseResult.fold(
                                                 onSuccess = { categorySpend ->
-                                                    spendParseStatus = "Loaded ${categorySpend.size} category spend rows"
+                                                    spendRecordCount = categorySpend.size
+                                                    spendParseStatus = "Loaded ${categorySpend.size} rows"
                                                 },
                                                 onFailure = { error ->
                                                     spendError = "Invalid JSON: ${error.message}"
                                                     spendParseStatus = null
+                                                    spendRecordCount = null
                                                 }
                                             )
                                         } catch (e: Exception) {
                                             spendError = "Failed to read file: ${e.message}"
                                             spendParseStatus = null
+                                            spendRecordCount = null
                                         }
+                                    }
+                                },
+                                onPreview = {
+                                    if (spendJson != null) {
+                                        showSpendPreview = true
                                     }
                                 }
                             )
                             
-                            // Helper text
-                            Text(
-                                text = "Use sample format",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(top = 8.dp)
-                            )
+                            // Helper section
+                            Spacer(modifier = Modifier.height(8.dp))
+                            if (onSwitchToDemo != null) {
+                                TextButton(
+                                    onClick = {
+                                        shouldAutoOpenPreview = true
+                                        onSwitchToDemo()
+                                    }
+                                ) {
+                                    Text("Need a template? Use demo format")
+                                }
+                            }
                         } else {
                             // Platform doesn't support upload
                             Card(
@@ -235,21 +283,87 @@ fun InputScreen(
                     }
                 }
                 Text(
-                    text = if (inputMode == InputMode.Demo) "Takes < 1 second on demo datasets" else "Generates insights from your data",
+                    text = when {
+                        inputMode == InputMode.Demo -> "Takes < 1 second on demo datasets"
+                        !canGenerate -> "Upload KPI Daily and Category Spend to continue."
+                        else -> "Generates insights from your data"
+                    },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
     }
+    
+    // Demo preview dialog
+    if (showDemoPreview) {
+        val kpiPath = if (selectedVariant == "A") "kpi_daily_A.json" else "kpi_daily_B.json"
+        val spendPath = if (selectedVariant == "A") "category_spend_A.json" else "category_spend_B.json"
+        val kpiJsonText = DatasetLoader.loadText(kpiPath)
+        val spendJsonText = DatasetLoader.loadText(spendPath)
+        
+        // Get record counts
+        val kpiCount = repository.validateKpiJson(kpiJsonText).getOrNull()?.size
+        val spendCount = repository.validateSpendJson(spendJsonText).getOrNull()?.size
+        
+        JsonPreviewDialog(
+            title = "Preview Demo Inputs (Demo $selectedVariant)",
+            tabs = listOf(
+                JsonTab(
+                    label = "KPI Daily JSON",
+                    rawText = kpiJsonText,
+                    recordCount = kpiCount
+                ),
+                JsonTab(
+                    label = "Category Spend JSON",
+                    rawText = spendJsonText,
+                    recordCount = spendCount
+                )
+            ),
+            onDismiss = { showDemoPreview = false }
+        )
+    }
+    
+    // KPI preview dialog (upload mode)
+    if (showKpiPreview && kpiJson != null) {
+        JsonPreviewDialog(
+            title = "Preview KPI Daily JSON",
+            tabs = listOf(
+                JsonTab(
+                    label = "KPI Daily JSON",
+                    rawText = kpiJson!!,
+                    recordCount = kpiRecordCount
+                )
+            ),
+            onDismiss = { showKpiPreview = false }
+        )
+    }
+    
+    // Spend preview dialog (upload mode)
+    if (showSpendPreview && spendJson != null) {
+        JsonPreviewDialog(
+            title = "Preview Category Spend JSON",
+            tabs = listOf(
+                JsonTab(
+                    label = "Category Spend JSON",
+                    rawText = spendJson!!,
+                    recordCount = spendRecordCount
+                )
+            ),
+            onDismiss = { showSpendPreview = false }
+        )
+    }
 }
 
 @Composable
 private fun UploadCard(
     title: String,
+    subtitle: String,
     parseStatus: String?,
     error: String?,
+    hasPreview: Boolean,
     onUpload: () -> Unit,
+    onPreview: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -263,32 +377,66 @@ private fun UploadCard(
         )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.Start
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleSmall
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             Button(onClick = onUpload) {
-                Text("Choose File")
+                Text("Choose file")
             }
             if (parseStatus != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "✅ $parseStatus",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "✅",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = parseStatus,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
             }
             if (error != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "❌",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = error,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
+            }
+            if (hasPreview) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "❌ $error",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
+                TextButton(
+                    onClick = onPreview,
+                    modifier = Modifier.padding(start = 0.dp)
+                ) {
+                    Text("View preview")
+                }
             }
         }
     }

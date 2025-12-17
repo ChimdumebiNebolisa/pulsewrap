@@ -161,6 +161,9 @@ private fun AppContent() {
                 },
                 onUploadSpendFile = {
                     pickFile(".json")
+                },
+                onSwitchToDemo = {
+                    inputMode = InputMode.Demo
                 }
             )
         }

@@ -451,15 +451,9 @@ PulseWrap expects two JSON files per dataset:
 
 ![KPI Recap Detailed View - Money and Users](docs/images/recap-detailed-money-users.png)
 
-*Detailed view showing Money section metrics (Total Revenue, Burn Rate, Total Expenses, Runway, Biggest Revenue Spike) and Users section (Average Daily Active Users, Peak New Users Day).*
-
-![KPI Recap Detailed View - Costs](docs/images/recap-detailed-costs.png)
-
-*Costs & Spend section displaying Highest Expenses Day and Top Spending Category with contextual dates.*
+*Detailed view showing Money section metrics (Total Revenue, Burn Rate, Total Expenses, Runway, Biggest Revenue Spike) and Users section (Average Daily Active Users, Peak New Users Day). The Costs & Spend section (not shown) displays Highest Expenses Day and Top Spending Category with contextual dates.*
 
 4. **Export Report**: Tap "Export Report" to view and export the markdown-formatted report
-
-![Markdown Report Export](docs/images/report-export.png)
 
 *The export screen shows the complete markdown report with all insights. Users can copy to clipboard or download the .md file on web, share via system intent on Android, or save to home directory on desktop.*
 
