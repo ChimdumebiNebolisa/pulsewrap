@@ -145,13 +145,17 @@ class MainActivity : ComponentActivity() {
                         onBack = { currentScreen = Screen.Input }
                     )
                 } else {
-                    RecapScreen(
-                        recapData = recapData,
-                        onBack = { currentScreen = Screen.Input },
-                        onViewMarkdown = {
-                            currentScreen = Screen.Report
-                        }
-                    )
+                RecapScreen(
+                    recapData = recapData,
+                    onBack = { currentScreen = Screen.Input },
+                    onViewMarkdown = {
+                        currentScreen = Screen.Report
+                    },
+                    onTryAnother = {
+                        inputMode = InputMode.Demo
+                        currentScreen = Screen.Input
+                    }
+                )
                 }
             }
             is Screen.Report -> {

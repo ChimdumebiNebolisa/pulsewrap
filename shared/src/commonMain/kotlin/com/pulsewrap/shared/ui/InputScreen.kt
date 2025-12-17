@@ -194,23 +194,45 @@ fun InputScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Button(
-                    onClick = {
-                        when (inputMode) {
-                            InputMode.Demo -> onGenerateDemo(selectedVariant)
-                            InputMode.Upload -> {
-                                if (kpiJson != null && spendJson != null) {
-                                    onGenerateUpload(kpiJson!!, spendJson!!)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.widthIn(min = 200.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = {
+                            // Reset all state
+                            selectedVariant = "A"
+                            kpiJson = null
+                            spendJson = null
+                            kpiParseStatus = null
+                            spendParseStatus = null
+                            kpiError = null
+                            spendError = null
+                        },
+                        modifier = Modifier
+                            .height(48.dp)
+                            .weight(1f)
+                    ) {
+                        Text("Reset", style = MaterialTheme.typography.titleMedium)
+                    }
+                    Button(
+                        onClick = {
+                            when (inputMode) {
+                                InputMode.Demo -> onGenerateDemo(selectedVariant)
+                                InputMode.Upload -> {
+                                    if (kpiJson != null && spendJson != null) {
+                                        onGenerateUpload(kpiJson!!, spendJson!!)
+                                    }
                                 }
                             }
-                        }
-                    },
-                    enabled = canGenerate,
-                    modifier = Modifier
-                        .height(48.dp)
-                        .widthIn(min = 200.dp)
-                ) {
-                    Text("Generate Recap", style = MaterialTheme.typography.titleMedium)
+                        },
+                        enabled = canGenerate,
+                        modifier = Modifier
+                            .height(48.dp)
+                            .weight(1f)
+                    ) {
+                        Text("Generate Recap", style = MaterialTheme.typography.titleMedium)
+                    }
                 }
                 Text(
                     text = if (inputMode == InputMode.Demo) "Takes < 1 second on demo datasets" else "Generates insights from your data",

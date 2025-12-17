@@ -1,6 +1,7 @@
 package com.pulsewrap.shared.engine
 
 import com.pulsewrap.shared.model.InsightCard
+import com.pulsewrap.shared.model.InsightType
 import com.pulsewrap.shared.model.ReportMeta
 import kotlinx.datetime.LocalDate
 import kotlin.test.Test
@@ -10,8 +11,8 @@ class MarkdownGeneratorTest {
     @Test
     fun testMarkdownFormat() {
         val insights = listOf(
-            InsightCard("Total Revenue", "$3,700.00", "Across 3 days"),
-            InsightCard("Net Profit", "$1,630.00", "Profitable period")
+            InsightCard("Total Revenue", "$3,700.00", "Across 3 days", InsightType.TOTAL_REVENUE),
+            InsightCard("Net Profit", "$1,630.00", "Profitable period", InsightType.NET_PROFIT)
         )
         val meta = ReportMeta("Demo A", LocalDate(2025, 11, 3))
         

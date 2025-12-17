@@ -1,9 +1,11 @@
 package com.pulsewrap.shared.engine
 
 import com.pulsewrap.shared.model.CategorySpend
+import com.pulsewrap.shared.model.InsightType
 import com.pulsewrap.shared.model.KpiDaily
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class InsightEngineTest {
@@ -18,8 +20,9 @@ class InsightEngineTest {
         val insights = InsightEngine.computeInsights(daily, spend)
         
         val totalRevenueInsight = insights.find { it.title == "Total Revenue" }
-        assertTrue(totalRevenueInsight != null)
-        assertTrue(totalRevenueInsight!!.primaryValue.contains("2,100"))
+        assertNotNull(totalRevenueInsight)
+        assertEquals(InsightType.TOTAL_REVENUE, totalRevenueInsight!!.type)
+        assertTrue(totalRevenueInsight.primaryValue.contains("2,100"))
     }
     
     @Test
@@ -33,9 +36,10 @@ class InsightEngineTest {
         val insights = InsightEngine.computeInsights(daily, spend)
         
         val netProfitInsight = insights.find { it.title == "Net Profit" }
-        assertTrue(netProfitInsight != null)
+        assertNotNull(netProfitInsight)
+        assertEquals(InsightType.NET_PROFIT, netProfitInsight!!.type)
         // 2100 - 1350 = 750
-        assertTrue(netProfitInsight!!.primaryValue.contains("750"))
+        assertTrue(netProfitInsight.primaryValue.contains("750"))
     }
     
     @Test
@@ -50,9 +54,13 @@ class InsightEngineTest {
         val insights = InsightEngine.computeInsights(daily, spend)
         
         val spikeInsight = insights.find { it.title == "Biggest Revenue Spike" }
-        assertTrue(spikeInsight != null)
+        assertNotNull(spikeInsight)
+        assertEquals(InsightType.BIGGEST_REVENUE_SPIKE, spikeInsight!!.type)
+        assertNotNull(spikeInsight.contextDate, "Spike insight should have contextDate")
+        assertNotNull(spikeInsight.contextDelta, "Spike insight should have contextDelta")
+        assertEquals(700.0, spikeInsight.contextDelta, "Spike delta should be 700")
         // Spike from 900 to 1600 = 700
-        assertTrue(spikeInsight!!.primaryValue.contains("700"))
+        assertTrue(spikeInsight.primaryValue.contains("700"))
     }
     
     @Test
@@ -69,8 +77,10 @@ class InsightEngineTest {
         val insights = InsightEngine.computeInsights(daily, spend)
         
         val topCategoryInsight = insights.find { it.title == "Top Spending Category" }
-        assertTrue(topCategoryInsight != null)
-        assertEquals("Ads", topCategoryInsight!!.primaryValue)
+        assertNotNull(topCategoryInsight)
+        assertEquals(InsightType.TOP_SPEND_CATEGORY, topCategoryInsight!!.type)
+        assertEquals("Ads", topCategoryInsight.primaryValue)
+        assertEquals("Ads", topCategoryInsight.contextCategory, "Top category insight should have contextCategory")
         // Total Ads: 120 + 140 = 260
         assertTrue(topCategoryInsight.supportingDetail.contains("260"))
     }

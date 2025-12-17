@@ -50,8 +50,11 @@ fun MarkdownPreviewScreen(
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        // Generation time would go here if needed
-                        // For now, just show dataset name
+                        Text(
+                            text = "This report matches your recap cards above.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                 }
             }

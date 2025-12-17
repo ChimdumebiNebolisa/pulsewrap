@@ -2,6 +2,7 @@ package com.pulsewrap.shared.engine
 
 import com.pulsewrap.shared.model.CategorySpend
 import com.pulsewrap.shared.model.InsightCard
+import com.pulsewrap.shared.model.InsightType
 import com.pulsewrap.shared.model.KpiDaily
 import com.pulsewrap.shared.util.Formatters
 import kotlinx.datetime.LocalDate
@@ -30,7 +31,8 @@ object InsightEngine {
             return listOf(InsightCard(
                 title = "Error",
                 primaryValue = "No valid data",
-                supportingDetail = "Could not parse any valid dates from the dataset"
+                supportingDetail = "Could not parse any valid dates from the dataset",
+                type = InsightType.TOTAL_REVENUE // Default type for error case
             ))
         }
         
@@ -41,7 +43,8 @@ object InsightEngine {
         insights.add(InsightCard(
             title = "Total Revenue",
             primaryValue = Formatters.formatCurrency(totalRevenue),
-            supportingDetail = "Across ${dailyRecords.size} days"
+            supportingDetail = "Across ${dailyRecords.size} days",
+            type = InsightType.TOTAL_REVENUE
         ))
         
         // 2. Total Expenses
@@ -49,7 +52,8 @@ object InsightEngine {
         insights.add(InsightCard(
             title = "Total Expenses",
             primaryValue = Formatters.formatCurrency(totalExpenses),
-            supportingDetail = "Across ${dailyRecords.size} days"
+            supportingDetail = "Across ${dailyRecords.size} days",
+            type = InsightType.TOTAL_EXPENSES
         ))
         
         // 3. Net Profit
@@ -57,34 +61,41 @@ object InsightEngine {
         insights.add(InsightCard(
             title = "Net Profit",
             primaryValue = Formatters.formatCurrency(netProfit),
-            supportingDetail = if (netProfit >= 0) "Profitable period" else "Loss period"
+            supportingDetail = if (netProfit >= 0) "Profitable period" else "Loss period",
+            type = InsightType.NET_PROFIT
         ))
         
         // 4. Best Revenue Day
         val bestRevenueDay = dailyRecords.maxByOrNull { it.revenue }
         bestRevenueDay?.let {
+            val formattedDate = try {
+                Formatters.formatDate(LocalDate.parse(it.date))
+            } catch (e: Exception) {
+                it.date
+            }
             insights.add(InsightCard(
                 title = "Best Revenue Day",
                 primaryValue = Formatters.formatCurrency(it.revenue),
-                supportingDetail = try {
-                    "On ${Formatters.formatDate(LocalDate.parse(it.date))}"
-                } catch (e: Exception) {
-                    "On ${it.date}"
-                }
+                supportingDetail = "On $formattedDate",
+                type = InsightType.BEST_REVENUE_DAY,
+                contextDate = formattedDate
             ))
         }
         
         // 5. Highest Expenses Day
         val highestExpenseDay = dailyRecords.maxByOrNull { it.expenses }
         highestExpenseDay?.let {
+            val formattedDate = try {
+                Formatters.formatDate(LocalDate.parse(it.date))
+            } catch (e: Exception) {
+                it.date
+            }
             insights.add(InsightCard(
                 title = "Highest Expenses Day",
                 primaryValue = Formatters.formatCurrency(it.expenses),
-                supportingDetail = try {
-                    "On ${Formatters.formatDate(LocalDate.parse(it.date))}"
-                } catch (e: Exception) {
-                    "On ${it.date}"
-                }
+                supportingDetail = "On $formattedDate",
+                type = InsightType.HIGHEST_EXPENSE_DAY,
+                contextDate = formattedDate
             ))
         }
         
@@ -93,20 +104,24 @@ object InsightEngine {
         insights.add(InsightCard(
             title = "Average Daily Active Users",
             primaryValue = Formatters.formatNumber(avgActiveUsers.toInt()),
-            supportingDetail = "Across all days"
+            supportingDetail = "Across all days",
+            type = InsightType.AVG_ACTIVE_USERS
         ))
         
         // 7. Peak New Users Day
         val peakNewUsersDay = dailyRecords.maxByOrNull { it.newUsers }
         peakNewUsersDay?.let {
+            val formattedDate = try {
+                Formatters.formatDate(LocalDate.parse(it.date))
+            } catch (e: Exception) {
+                it.date
+            }
             insights.add(InsightCard(
                 title = "Peak New Users Day",
                 primaryValue = "${it.newUsers} users",
-                supportingDetail = try {
-                    "On ${Formatters.formatDate(LocalDate.parse(it.date))}"
-                } catch (e: Exception) {
-                    "On ${it.date}"
-                }
+                supportingDetail = "On $formattedDate",
+                type = InsightType.PEAK_NEW_USERS_DAY,
+                contextDate = formattedDate
             ))
         }
         
@@ -125,14 +140,18 @@ object InsightEngine {
             }
             
             spikeDay?.let {
+                val formattedDate = try {
+                    Formatters.formatDate(LocalDate.parse(it.date))
+                } catch (e: Exception) {
+                    it.date
+                }
                 insights.add(InsightCard(
                     title = "Biggest Revenue Spike",
                     primaryValue = Formatters.formatCurrency(maxSpike),
-                    supportingDetail = try {
-                        "On ${Formatters.formatDate(LocalDate.parse(it.date))}"
-                    } catch (e: Exception) {
-                        "On ${it.date}"
-                    }
+                    supportingDetail = "On $formattedDate",
+                    type = InsightType.BIGGEST_REVENUE_SPIKE,
+                    contextDate = formattedDate,
+                    contextDelta = maxSpike
                 ))
             }
         }
@@ -142,7 +161,8 @@ object InsightEngine {
         insights.add(InsightCard(
             title = "Burn Rate",
             primaryValue = Formatters.formatCurrency(burnRate),
-            supportingDetail = "Average daily expenses"
+            supportingDetail = "Average daily expenses",
+            type = InsightType.BURN_RATE
         ))
         
         // 10. Runway (if cashBalance exists)
@@ -153,7 +173,8 @@ object InsightEngine {
                 insights.add(InsightCard(
                     title = "Runway",
                     primaryValue = "$runwayDays days",
-                    supportingDetail = "Based on current cash balance and burn rate"
+                    supportingDetail = "Based on current cash balance and burn rate",
+                    type = InsightType.RUNWAY_DAYS
                 ))
             }
         }
@@ -167,7 +188,9 @@ object InsightEngine {
             insights.add(InsightCard(
                 title = "Top Spending Category",
                 primaryValue = it.key,
-                supportingDetail = "Total: ${Formatters.formatCurrency(it.value)}"
+                supportingDetail = "Total: ${Formatters.formatCurrency(it.value)}",
+                type = InsightType.TOP_SPEND_CATEGORY,
+                contextCategory = it.key
             ))
         }
         

@@ -40,5 +40,38 @@ class DatasetRepository {
             Result.failure(e)
         }
     }
+    
+    fun parseJsonDataset(kpiJson: String, spendJson: String): Result<Pair<List<KpiDaily>, List<CategorySpend>>> {
+        return try {
+            val kpiDaily = json.decodeFromString<List<KpiDaily>>(kpiJson)
+            val categorySpend = json.decodeFromString<List<CategorySpend>>(spendJson)
+            
+            if (kpiDaily.isEmpty()) {
+                Result.failure(IllegalStateException("KPI dataset is empty"))
+            } else {
+                Result.success(Pair(kpiDaily, categorySpend))
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    fun validateKpiJson(kpiJson: String): Result<List<KpiDaily>> {
+        return try {
+            val kpiDaily = json.decodeFromString<List<KpiDaily>>(kpiJson)
+            Result.success(kpiDaily)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    fun validateSpendJson(spendJson: String): Result<List<CategorySpend>> {
+        return try {
+            val categorySpend = json.decodeFromString<List<CategorySpend>>(spendJson)
+            Result.success(categorySpend)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }
 

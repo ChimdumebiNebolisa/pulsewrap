@@ -1,0 +1,16 @@
+package com.pulsewrap.shared.model
+
+enum class InsightType {
+    TOTAL_REVENUE,
+    TOTAL_EXPENSES,
+    NET_PROFIT,
+    BEST_REVENUE_DAY,
+    HIGHEST_EXPENSE_DAY,
+    AVG_ACTIVE_USERS,
+    PEAK_NEW_USERS_DAY,
+    BIGGEST_REVENUE_SPIKE,
+    BURN_RATE,
+    RUNWAY_DAYS,
+    TOP_SPEND_CATEGORY
+}
+

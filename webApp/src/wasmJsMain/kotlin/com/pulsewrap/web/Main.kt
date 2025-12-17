@@ -183,6 +183,10 @@ private fun AppContent() {
                     onBack = { currentScreen = Screen.Input },
                     onViewMarkdown = {
                         currentScreen = Screen.Report
+                    },
+                    onTryAnother = {
+                        inputMode = InputMode.Demo
+                        currentScreen = Screen.Input
                     }
                 )
             }

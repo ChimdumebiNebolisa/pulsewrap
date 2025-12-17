@@ -9,6 +9,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.pulsewrap.shared.engine.CaptionGenerator
+import com.pulsewrap.shared.engine.NarrativeGenerator
 import com.pulsewrap.shared.model.RecapData
 import com.pulsewrap.shared.util.DateRangeUtils
 import kotlinx.datetime.LocalDate
@@ -19,6 +21,7 @@ fun RecapScreen(
     recapData: RecapData?,
     onBack: () -> Unit,
     onViewMarkdown: () -> Unit,
+    onTryAnother: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     ScreenContainer(
@@ -135,9 +138,9 @@ fun RecapScreen(
                 
                 // Hero Summary Card
                 HeroSummaryCard(
-                    datasetName = recapData.datasetName,
+                    recapData = recapData,
                     dateRange = displayDateRange,
-                    insights = recapData.insights
+                    onTryAnother = onTryAnother
                 )
                 
                 // Grouped Insight Sections
@@ -156,10 +159,11 @@ fun RecapScreen(
 
 @Composable
 private fun HeroSummaryCard(
-    datasetName: String,
+    recapData: RecapData,
     dateRange: String,
-    insights: List<com.pulsewrap.shared.model.InsightCard>
+    onTryAnother: () -> Unit
 ) {
+    val insights = recapData.insights
     val totalRevenue = insights.find { it.title == "Total Revenue" }?.primaryValue ?: "$0"
     val totalExpenses = insights.find { it.title == "Total Expenses" }?.primaryValue ?: "$0"
     val netProfit = insights.find { it.title == "Net Profit" }?.primaryValue ?: "$0"
@@ -168,7 +172,7 @@ private fun HeroSummaryCard(
         !it.primaryValue.startsWith("-") && it.primaryValue != "$0.00"
     } ?: false
     
-    val narrativeText = generateNarrativeText(insights, dateRange)
+    val narrativeText = NarrativeGenerator.generateNarrative(recapData)
     
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -191,7 +195,7 @@ private fun HeroSummaryCard(
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             Text(
-                text = "$datasetName • $dateRange",
+                text = "${recapData.datasetName} • $dateRange",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
@@ -220,6 +224,14 @@ private fun HeroSummaryCard(
                     isPositive = isProfitable,
                     modifier = Modifier.weight(1f)
                 )
+            }
+            
+            // Try Another Dataset button
+            OutlinedButton(
+                onClick = onTryAnother,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Try Another Dataset")
             }
             
             // Narrative text
@@ -320,7 +332,7 @@ private fun InsightSectionView(
                         InsightCard(
                             title = insight.title,
                             primaryValue = insight.primaryValue,
-                            supportingDetail = humanizeSupportingDetail(insight.supportingDetail),
+                            supportingDetail = CaptionGenerator.humanCaption(insight),
                             tier = section.tier,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -334,7 +346,7 @@ private fun InsightSectionView(
                         InsightCard(
                             title = insight.title,
                             primaryValue = insight.primaryValue,
-                            supportingDetail = humanizeSupportingDetail(insight.supportingDetail),
+                            supportingDetail = CaptionGenerator.humanCaption(insight),
                             tier = section.tier,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -349,7 +361,7 @@ private fun InsightSectionView(
                     InsightCard(
                         title = insight.title,
                         primaryValue = insight.primaryValue,
-                        supportingDetail = humanizeSupportingDetail(insight.supportingDetail),
+                        supportingDetail = CaptionGenerator.humanCaption(insight),
                         tier = section.tier,
                         modifier = Modifier.fillMaxWidth()
                     )
